@@ -1,0 +1,94 @@
+Nii Sowah 18682028 Cohort C
+
+7.24a. b.
+MariaDB [ia]> CREATE TABLE Employee(
+    ->     empNo int PRIMARY KEY,
+    ->     fName varchar(30),
+    ->     lName varchar(30),
+    ->     dept varchar(30),
+    ->     sex char(1) CHECK (sex IN ('M', 'F')),
+    ->     position varchar(30) CHECK (position IN ('Manager', 'Team Leader', 'Analyst', 'Software Developer'));
+Query OK, 0 rows affected (0.014 sec)
+
+
+c. MariaDB [ia]> CREATE TABLE WorksOn(
+    ->     empNo int,
+    ->     projNo varchar(4),
+    ->     hoursWorked int CHECK (hoursWorked >= 0 AND hoursWorked <= 40),
+    ->     PRIMARY KEY(empNo, projNo),
+    ->     FOREIGN KEY(empNo) REFERENCES Employee(empNo),
+    ->     FOREIGN KEY(projNo) REFERENCES Project(projNo);
+Query OK, 0 rows affected (0.015 sec)
+
+7.25
+CREATE VIEW FemaleManagerProjects AS
+    -> SELECT p.projNo, p.projName, p.budget, p.managerId
+    -> FROM Project p
+    -> JOIN Employee e ON p.managerId = e.empNo
+    -> WHERE e.sex = 'F' AND e.position = 'Manager'
+    -> ORDER BY p.projNo;
+Query OK, 0 rows affected (0.015 sec)
+
+7.26
+MariaDB [ia]> CREATE VIEW EmpProjectDetails AS
+    -> SELECT e.empNo, e.fName, e.lName, p.projName, w.hoursWorked
+    -> FROM Employee e
+    -> JOIN WorksOn w ON e.empNo = w.empNo
+    -> JOIN Project p ON w.projNo = p.projNo;
+Query OK, 0 rows affected (0.013 sec)
+
+7.27
+MariaDB [ia]> CREATE VIEW EmpProject(empNo, projNo, totalHours) AS
+    -> SELECT w.empNo, w.projNo, SUM(w.hoursWorked)
+    -> FROM Employee e, Project p, WorksOn w
+    -> WHERE e.empNo = w.empNo AND p.projNo = w.projNo
+    -> GROUP BY w.empNo, w.projNo;
+Query OK, 0 rows affected (0.028 sec)
+
+a. MariaDB [ia]> select * from empproject;
++-------+--------+------------+
+| empNo | projNo | totalHours |
++-------+--------+------------+
+|     1 | PR01   |         30 |
+|     1 | PR03   |         12 |
+|     2 | PR02   |         25 |
+|     3 | PR03   |         40 |
+|     4 | PR01   |         18 |
+|     4 | PR02   |         10 |
++-------+--------+------------+
+6 rows in set (0.029 sec)
+
+b. MariaDB [ia]> select projno from empproject;
++--------+
+| projno |
++--------+
+| PR01   |
+| PR03   |
+| PR02   |
+| PR03   |
+| PR01   |
+| PR02   |
++--------+
+6 rows in set (0.001 sec)
+
+c. MariaDB [ia]> select count(projno) from empproject where empno = 1;
++---------------+
+| count(projno) |
++---------------+
+|             2 |
++---------------+
+1 row in set (0.021 sec)
+
+d. MariaDB [ia]> select empno, totalhours from empproject group by empNo;
++-------+------------+
+| empno | totalhours |
++-------+------------+
+|     1 |         30 |
+|     2 |         25 |
+|     3 |         40 |
+|     4 |         18 |
++-------+------------+
+4 rows in set (0.014 sec)
+
+7.28
+Using before triggers with the values, we can have direct access to the values being worked with without querying the table. However using after triggers will still require the data to e queried first to verify its state. 
